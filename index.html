@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice Generator</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header>
+    <h1>Invoice Generator</h1>
+    <button id="btnSettings" class="btn btn-sm" onclick="toggleSettings()">⚙️ Profil Bisnis</button>
+  </header>
+
+  <!-- Settings / Business Profile -->
+  <section id="settingsPanel" class="settings-panel hidden">
+    <h2>Profil Bisnis</h2>
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="bizName">Nama Perusahaan</label>
+        <input type="text" id="bizName" placeholder="Nama perusahaan">
+      </div>
+      <div class="form-group">
+        <label for="bizEmail">Email</label>
+        <input type="email" id="bizEmail" placeholder="info@contoh.com">
+      </div>
+      <div class="form-group full-width">
+        <label for="bizAddress">Alamat</label>
+        <textarea id="bizAddress" rows="2" placeholder="Alamat perusahaan"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="bizPhone">Telepon</label>
+        <input type="text" id="bizPhone" placeholder="021-1234567">
+      </div>
+      <div class="form-group">
+        <label for="bizBank">Info Bank</label>
+        <input type="text" id="bizBank" placeholder="BCA 1234567890 a/n PT Contoh">
+      </div>
+      <div class="form-group">
+        <label for="bizLogo">Logo (URL/base64/nama file)</label>
+        <input type="text" id="bizLogo" placeholder="IMG_20260716_141824.jpg">
+      </div>
+      <div class="form-group">
+        <label for="bizTax">PPN (%)</label>
+        <input type="number" id="bizTax" value="11" min="0" max="100">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveBusinessProfile()">Simpan Profil</button>
+      <button class="btn btn-sm" onclick="toggleSettings()">Tutup</button>
+    </div>
+  </section>
+
+  <!-- Invoice Form -->
+  <section id="invoiceForm" class="invoice-form">
+    <h2>Buat Invoice Baru</h2>
+
+    <!-- Invoice Meta -->
+    <div class="form-grid">
+      <div class="form-group">
+        <label for="invoiceNo">No. Invoice</label>
+        <input type="text" id="invoiceNo" readonly>
+      </div>
+      <div class="form-group">
+        <label for="invoiceDate">Tanggal</label>
+        <input type="date" id="invoiceDate">
+      </div>
+      <div class="form-group">
+        <label for="invoiceDueDate">Jatuh Tempo</label>
+        <input type="date" id="invoiceDueDate">
+      </div>
+      <div class="form-group">
+        <label for="invoiceStatus">Status</label>
+        <select id="invoiceStatus">
+          <option value="DRAFT">Draft</option>
+          <option value="SENT">Terkirim</option>
+          <option value="PAID">Lunas</option>
+          <option value="OVERDUE">Jatuh Tempo</option>
+        </select>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- Customer Info: Bill To & Send To -->
+    <div class="form-grid two-col">
+      <div>
+        <h3>Bill To</h3>
+        <div class="form-group">
+          <label for="billToName">Nama Customer</label>
+          <input type="text" id="billToName" placeholder="Nama perusahaan / individu">
+        </div>
+        <div class="form-group">
+          <label for="billToPhone">No. HP</label>
+          <input type="text" id="billToPhone" placeholder="+62 812-xxxx-xxxx">
+        </div>
+        <div class="form-group">
+          <label for="billToAddress">Alamat</label>
+          <textarea id="billToAddress" rows="3" placeholder="Alamat customer"></textarea>
+        </div>
+      </div>
+      <div>
+        <h3>Send To</h3>
+        <div class="form-group">
+          <label for="sendToName">Nama Penerima</label>
+          <input type="text" id="sendToName" placeholder="Nama penerima / management">
+        </div>
+        <div class="form-group">
+          <label for="sendToPhone">No. HP</label>
+          <input type="text" id="sendToPhone" placeholder="+62 812-xxxx-xxxx">
+        </div>
+        <div class="form-group">
+          <label for="sendToAddress">Alamat Pengiriman</label>
+          <textarea id="sendToAddress" rows="3" placeholder="Alamat lengkap pengiriman"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- Line Items -->
+    <h3>Item Invoice</h3>
+    <table id="itemsTable" class="items-table">
+      <thead>
+        <tr>
+          <th style="width:40px">#</th>
+          <th>Deskripsi</th>
+          <th style="width:80px">Qty</th>
+          <th style="width:140px">Harga Satuan</th>
+          <th style="width:140px">Jumlah</th>
+          <th style="width:50px"></th>
+        </tr>
+      </thead>
+      <tbody id="itemsBody">
+      </tbody>
+    </table>
+    <button class="btn btn-sm" onclick="addItemRow()">+ Tambah Item</button>
+
+    <div class="ppn-toggle">
+      <input type="checkbox" id="ppnEnabled" checked onchange="calculateTotals()">
+      <label for="ppnEnabled">Gunakan PPN</label>
+    </div>
+
+    <div class="totals-section">
+      <div class="totals-row">
+        <span>Subtotal</span>
+        <span id="subtotalDisplay">Rp 0</span>
+      </div>
+      <div class="totals-row">
+        <span>PPN (<span id="taxRateDisplay">11</span>%)</span>
+        <span id="taxDisplay">Rp 0</span>
+      </div>
+      <div class="totals-row input-row">
+        <span>Diskon</span>
+        <input type="text" id="diskon" inputmode="numeric" placeholder="0" value="0" oninput="handleDiskonInput(this)">
+      </div>
+      <div class="totals-row input-row">
+        <span>Ongkir</span>
+        <input type="text" id="ongkir" inputmode="numeric" placeholder="0" value="0" oninput="handleOngkirInput(this)">
+      </div>
+      <div class="totals-row total-final">
+        <span>TOTAL</span>
+        <span id="totalDisplay">Rp 0</span>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- Notes -->
+    <div class="form-group full-width">
+      <label for="invoiceNotes">Catatan</label>
+      <textarea id="invoiceNotes" rows="3" placeholder="Catatan tambahan untuk invoice ini..."></textarea>
+    </div>
+
+    <!-- Payment Method & Terms (hidden, defaults used) -->
+    <div class="form-grid two-col" style="display:none;">
+      <div>
+        <h3>Payment Method</h3>
+        <div class="form-group">
+          <label for="paymentMethod">Metode Pembayaran</label>
+          <input type="text" id="paymentMethod" value="Bank Transfer" readonly>
+        </div>
+        <div class="form-group">
+          <label for="bankName">Nama Bank</label>
+          <input type="text" id="bankName" value="CIMB NIAGA">
+        </div>
+        <div class="form-group">
+          <label for="bankAccount">No. Rekening</label>
+          <input type="text" id="bankAccount" value="800206032000">
+        </div>
+        <div class="form-group">
+          <label for="bankHolder">Atas Nama</label>
+          <input type="text" id="bankHolder" value="MAJU ABADI KREATIVA">
+        </div>
+      </div>
+      <div>
+        <h3>Terms & Conditions</h3>
+        <div class="form-group">
+          <label for="terms1">1.</label>
+          <textarea id="terms1" rows="2">Order will be processed and shipped after full payment is received.
+Pesanan akan diproses dan dikirim setelah pembayaran diterima secara penuh.</textarea>
+        </div>
+        <div class="form-group">
+          <label for="terms2">2.</label>
+          <textarea id="terms2" rows="2">Shipping cost and delivery time depend on the selected shipping method.
+Biaya pengiriman dan waktu pengiriman tergantung pada metode pengiriman yang dipilih.</textarea>
+        </div>
+        <div class="form-group">
+          <label for="terms3">3.</label>
+          <textarea id="terms3" rows="2">The product includes a 6-month warranty for normal use.
+Produk memiliki garansi 6 bulan untuk pemakaian normal.</textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveInvoice()">💾 Simpan Invoice</button>
+      <button class="btn btn-success" onclick="previewInvoice()">👁️ Preview</button>
+      <button class="btn btn-danger" onclick="resetForm()">🗑️ Reset</button>
+    </div>
+  </section>
+
+  <!-- Invoice List -->
+  <section id="invoiceList" class="invoice-list">
+    <h2>Daftar Invoice</h2>
+    <div id="listContainer">
+      <p class="empty-msg">Belum ada invoice tersimpan.</p>
+    </div>
+  </section>
+
+  <!-- Preview Modal -->
+  <div id="previewModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Preview Invoice</h2>
+        <button class="btn btn-sm" onclick="closePreview()">✕ Tutup</button>
+      </div>
+      <div id="previewBody" class="preview-body"></div>
+      <div class="modal-footer">
+        <button class="btn btn-success" onclick="generatePDF()">🖨️ Cetak PDF</button>
+        <button class="btn btn-sm" onclick="closePreview()">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden div for Print rendering -->
+  <div id="printArea"></div>
+
+  <!-- App Scripts -->
+  <script src="js/invoice-template.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
