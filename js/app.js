@@ -110,9 +110,14 @@ function generateInvoiceNo() {
   const now = new Date();
   const mm = String(now.getMonth() + 1).padStart(2, '0');
   const yy = String(now.getFullYear()).slice(-2);
+  const dd = String(now.getDate()).padStart(2, '0');
   const invoices = getInvoices();
-  const nextNum = String(invoices.length + 1).padStart(4, '0');
-  return `POLY/INV/${mm}${yy}/${nextNum}`;
+  const existingNos = new Set(invoices.map(inv => inv.invoiceNo));
+  let random;
+  do {
+    random = String(Math.floor(Math.random() * 900) + 100);
+  } while (existingNos.has(`POLY/INV/${mm}${yy}${dd}/${random}`));
+  return `POLY/INV/${mm}${yy}${dd}/${random}`;
 }
 
 function formatDateInput(date) {
