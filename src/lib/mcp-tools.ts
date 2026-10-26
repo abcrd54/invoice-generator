@@ -41,7 +41,7 @@ Alur kerja:
 1. Panggil list_document_types dulu untuk melihat jenis dokumen, field-nya, dan contoh format (example) dari user.
 2. Ubah permintaan user menjadi data terstruktur sesuai field, lalu create_document. Server yang menghitung subtotal, PPN, total, dan nomor dokumen — jangan hitung sendiri.
 3. Untuk form request payment, lampirkan bukti transfer dengan attach_proof jika user mengirim gambar.
-4. Balas user dengan nomor dokumen, total, dan url (link untuk lihat/cetak PDF).
+4. Balas user dengan nomor dokumen, total, dan url (halaman lihat/cetak) atau pdf_url (file PDF langsung).
 Jika user memberi contoh format form baru, buat jenisnya dengan upsert_document_type (simpan contoh asli di "example").
 Semua uang dalam rupiah sebagai angka bulat. Tanggal format YYYY-MM-DD (zona WIB). Tanyakan ke user jika data wajib kurang, jangan mengarang.`;
 

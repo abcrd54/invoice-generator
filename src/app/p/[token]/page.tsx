@@ -22,6 +22,9 @@ export default async function SharePage({ params }: { params: Params }) {
     <div className="print-page">
       <title>{doc.number.replace(/\//g, '-')}</title>
       <div className="print-toolbar">
+        <a className="btn" href={`/p/${token}/pdf?download`}>
+          ⬇️ Download PDF
+        </a>
         <PrintButton />
       </div>
       <DocumentView number={doc.number} status={doc.status} data={doc.data} type={type} biz={biz} proofUrl={proof} />

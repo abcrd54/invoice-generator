@@ -477,6 +477,7 @@ export function summarize(doc: DocumentRow) {
     has_proof: Boolean(doc.proof_path),
     created_at: doc.created_at,
     url: shareUrl(doc),
+    pdf_url: `${shareUrl(doc)}/pdf`,
   };
 }
 

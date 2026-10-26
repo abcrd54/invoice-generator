@@ -30,7 +30,35 @@ mcp_servers:
 ```
 Setelah mengubah config, jalankan `/reload-mcp` di Hermes (atau restart gateway).
 
-### Hermes via WhatsApp
+### Bot WhatsApp bawaan (disarankan)
+Aplikasi ini punya bot WhatsApp sendiri di `/api/whatsapp` (WhatsApp Cloud API resmi + Claude API) — tanpa VPS.
+Chat → Claude memakai tool yang sama dengan MCP → balasan teks **+ file PDF** dikirim langsung ke chat.
+
+Setup:
+1. Jalankan `supabase/migrations/0003_whatsapp.sql` di SQL Editor Supabase.
+2. https://developers.facebook.com → **Create app** (tipe Business) → tambahkan produk **WhatsApp**.
+   - Daftarkan nomor khusus bot (nomor yang belum dipakai di aplikasi WhatsApp).
+   - Catat **Phone number ID**.
+   - Business Settings → System users → buat user, beri akses ke app & akun WhatsApp, **Generate token**
+     (permission `whatsapp_business_messaging`, `whatsapp_business_management`) → ini `WHATSAPP_TOKEN` (permanen).
+   - App settings → Basic → **App secret** → `WHATSAPP_APP_SECRET`.
+3. Isi env di Vercel (lihat `.env.example`): `ANTHROPIC_API_KEY`, `WHATSAPP_TOKEN`, `WHATSAPP_PHONE_NUMBER_ID`,
+   `WHATSAPP_APP_SECRET`, `WHATSAPP_VERIFY_TOKEN` (string bebas), `WHATSAPP_ALLOWED_NUMBERS` (nomor kamu/tim, format 628xxx). Redeploy.
+4. Meta → WhatsApp → Configuration → **Webhook**: Callback URL `https://<domain>/api/whatsapp`,
+   Verify token = `WHATSAPP_VERIFY_TOKEN` → Verify and save → subscribe field **messages**.
+5. Kirim pesan dari nomor yang diizinkan ke nomor bot.
+
+Pemakaian:
+- Teks: *"req ads Lola Chair 3.500.000, biaya lain 1.000, rekening BCA 0123456789 a.n. Sola"* → bot membalas nomor + total, lalu mengirim PDF.
+- Foto bukti transfer: kirim fotonya (boleh dengan caption, mis. *"bukti untuk REQ-ADS tadi"*) → dilampirkan ke form, PDF baru dikirim.
+- *"kirim pdf invoice Budi kemarin"* → bot mencari dan mengirim PDF-nya.
+- `reset` → hapus riwayat chat (mulai topik baru).
+- Nomor yang tidak ada di `WHATSAPP_ALLOWED_NUMBERS` diabaikan.
+
+Biaya: membalas chat yang dimulai user gratis di WhatsApp Cloud API; Claude API dibayar per pemakaian.
+`CLAUDE_EFFORT=low` membuat balasan lebih cepat & hemat.
+
+### Hermes via WhatsApp (alternatif, butuh VPS)
 Hermes punya gateway WhatsApp bawaan (bridge WhatsApp Web / Baileys, tidak perlu URL publik). Di VPS:
 ```bash
 hermes whatsapp            # pilih mode "bot" (nomor khusus) lalu scan QR:
@@ -84,6 +112,7 @@ Agent akan memanggil `upsert_document_type` (layout `payment_request` atau `gene
 ## REST API
 | Method | Path | Body |
 |---|---|---|
+| GET | `/p/:token/pdf` | file PDF dokumen (tanpa login, token = link share). Tambah `?download` untuk unduh |
 | GET | `/api/v1/document-types` | |
 | POST | `/api/v1/document-types` | sama seperti `upsert_document_type` |
 | GET | `/api/v1/documents?type=&status=&search=&limit=` | |
