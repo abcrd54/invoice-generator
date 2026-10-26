@@ -3,3 +3,10 @@ IMG_20260716_132740.jpg
 .DS_Store
 *.log
 node_modules/
+.next/
+out/
+.env
+.env*.local
+.vercel
+next-env.d.ts
+*.tsbuildinfo
