@@ -2,11 +2,13 @@
 
 import { useState } from 'react';
 import type { BusinessProfile } from '@/lib/types';
+import { withProgress } from './NavProgress';
 
 export function ProfileForm({ profile }: { profile: BusinessProfile }) {
   const [p, setP] = useState(profile);
   const [termsText, setTermsText] = useState(profile.default_terms.join('\n\n'));
   const [msg, setMsg] = useState('');
+  const [saving, setSaving] = useState(false);
 
   const field = (key: keyof BusinessProfile, label: string, opts: { textarea?: boolean; full?: boolean } = {}) => (
     <div className={`form-group ${opts.full ? 'full-width' : ''}`}>
@@ -26,8 +28,10 @@ export function ProfileForm({ profile }: { profile: BusinessProfile }) {
       tax_rate: Number(p.tax_rate) || 0,
       default_terms: termsText.split(/\n\s*\n/).map((t) => t.trim()).filter(Boolean),
     };
-    const res = await fetch('/api/v1/profile', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    setSaving(true);
+    const res = await withProgress(() => fetch('/api/v1/profile', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }));
     const json = await res.json();
+    setSaving(false);
     setMsg(res.ok ? 'Profil disimpan ✓' : json.error ?? 'Gagal menyimpan');
   }
 
@@ -50,7 +54,16 @@ export function ProfileForm({ profile }: { profile: BusinessProfile }) {
         </div>
       </div>
       <div className="form-actions">
-        <button className="btn btn-primary" onClick={save}>Simpan Profil</button>
+        <button className="btn btn-primary" onClick={save} disabled={saving}>
+          {saving ? (
+            <>
+              <span className="spinner" />
+              Menyimpan...
+            </>
+          ) : (
+            'Simpan Profil'
+          )}
+        </button>
         {msg && <span className="muted" style={{ alignSelf: 'center' }}>{msg}</span>}
       </div>
     </section>

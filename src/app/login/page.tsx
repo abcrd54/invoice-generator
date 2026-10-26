@@ -18,8 +18,10 @@ function LoginForm() {
     setLoading(true);
     setError('');
     const { error } = await createBrowserSupabase().auth.signInWithPassword({ email, password });
-    setLoading(false);
-    if (error) return setError(error.message);
+    if (error) {
+      setLoading(false);
+      return setError(error.message);
+    }
     router.replace(next.startsWith('/') ? next : '/');
     router.refresh();
   }
@@ -38,7 +40,14 @@ function LoginForm() {
           <input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
         <button className="btn btn-primary" disabled={loading}>
-          {loading ? 'Memproses...' : 'Masuk'}
+          {loading ? (
+            <>
+              <span className="spinner" />
+              Memproses...
+            </>
+          ) : (
+            'Masuk'
+          )}
         </button>
       </form>
     </section>

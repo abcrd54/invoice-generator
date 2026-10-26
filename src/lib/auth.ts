@@ -21,7 +21,7 @@ export async function authorize(req: Request) {
     return { db: createAdminClient(), caller: 'agent' as Caller };
   }
   const session = await createSessionClient();
-  const { data } = await session.auth.getUser();
-  if (!data.user) throw new AppError('unauthorized', 401);
+  const { data } = await session.auth.getClaims();
+  if (!data?.claims) throw new AppError('unauthorized', 401);
   return { db: createAdminClient(), caller: 'web' as Caller };
 }

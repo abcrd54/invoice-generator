@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { normalizeGeneric, normalizeInvoice, normalizePaymentRequest, shareUrl } from '@/lib/documents';
 import { formatRupiah, todayISO } from '@/lib/format';
@@ -8,6 +8,7 @@ import type { BusinessProfile, DocumentRow, DocumentType, GenericData, InvoiceDa
 import { DocumentView } from './DocumentView';
 import { ItemsEditor, MoneyInput, toItemDrafts, type ItemDraft } from './ItemsEditor';
 import { DeleteButton } from './DeleteButton';
+import { withProgress } from './NavProgress';
 
 interface Props {
   type: DocumentType;
@@ -22,6 +23,9 @@ export function DocumentEditor({ type, profile, doc, proofUrl }: Props) {
   const router = useRouter();
   const [status, setStatus] = useState(doc?.status ?? 'DRAFT');
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [refreshing, startRefresh] = useTransition();
+  const refresh = () => startRefresh(() => router.refresh());
   const [error, setError] = useState('');
   const [preview, setPreview] = useState(false);
 
@@ -102,14 +106,19 @@ export function DocumentEditor({ type, profile, doc, proofUrl }: Props) {
 
   async function removeProof() {
     if (!doc || !confirm('Hapus bukti transfer?')) return;
-    const res = await fetch(`/api/v1/documents/${doc.id}/proof`, { method: 'DELETE' });
+    const res = await withProgress(() => fetch(`/api/v1/documents/${doc.id}/proof`, { method: 'DELETE' }));
     if (!res.ok) return setError((await res.json()).error ?? 'Gagal menghapus');
-    router.refresh();
+    refresh();
   }
 
   async function save() {
     setSaving(true);
     setError('');
+    await withProgress(doSave);
+    setSaving(false);
+  }
+
+  async function doSave() {
     const res = await fetch(doc ? `/api/v1/documents/${doc.id}` : '/api/v1/documents', {
       method: doc ? 'PATCH' : 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -123,10 +132,9 @@ export function DocumentEditor({ type, profile, doc, proofUrl }: Props) {
         setError((e as Error).message);
       }
     }
-    setSaving(false);
     if (!res.ok) return setError(json.error ?? 'Gagal menyimpan');
-    if (!doc) router.replace(`/documents/${json.document.id}`);
-    router.refresh();
+    if (!doc) startRefresh(() => router.replace(`/documents/${json.document.id}`));
+    else refresh();
   }
 
   const partyFields = (label: string, p: Party, set: (p: Party) => void) => (
@@ -303,18 +311,26 @@ export function DocumentEditor({ type, profile, doc, proofUrl }: Props) {
             <input
               type="file"
               accept="image/png,image/jpeg,image/webp"
+              disabled={uploading}
               onChange={async (e) => {
                 const file = e.target.files?.[0] ?? null;
                 if (file && doc) {
+                  setUploading(true);
                   try {
-                    await uploadProof(doc.id, file);
-                    router.refresh();
+                    await withProgress(() => uploadProof(doc.id, file));
+                    refresh();
                   } catch (err) {
                     setError((err as Error).message);
                   }
+                  setUploading(false);
                 } else setProofFile(file);
               }}
             />
+            {uploading && (
+              <div className="muted" style={{ marginTop: 6 }}>
+                <span className="spinner" /> Mengupload bukti transfer...
+              </div>
+            )}
             {(localProof || proofUrl) && (
               <div style={{ marginTop: 8, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -347,8 +363,15 @@ export function DocumentEditor({ type, profile, doc, proofUrl }: Props) {
       </div>
 
       <div className="form-actions">
-        <button className="btn btn-primary" onClick={save} disabled={saving}>
-          {saving ? 'Menyimpan...' : '💾 Simpan'}
+        <button className="btn btn-primary" onClick={save} disabled={saving || refreshing}>
+          {saving || refreshing ? (
+            <>
+              <span className="spinner" />
+              Menyimpan...
+            </>
+          ) : (
+            '💾 Simpan'
+          )}
         </button>
         <button className="btn btn-success" onClick={() => setPreview(true)} disabled={!computed}>
           👁️ Preview

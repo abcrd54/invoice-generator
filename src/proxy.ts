@@ -17,9 +17,10 @@ export async function proxy(request: NextRequest) {
     },
   });
 
-  const { data } = await supabase.auth.getUser();
+  // getClaims memverifikasi JWT secara lokal (dan me-refresh token bila kedaluwarsa)
+  const { data } = await supabase.auth.getClaims();
   const path = request.nextUrl.pathname;
-  if (!data.user && path !== '/login') {
+  if (!data?.claims && path !== '/login') {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     url.searchParams.set('next', path);

@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Form from 'next/form';
 import { requireUser } from '@/lib/session';
 import { listDocuments, listTypes } from '@/lib/documents';
 import { formatDate, formatRupiah } from '@/lib/format';
@@ -9,9 +10,11 @@ type SP = Promise<{ type?: string; status?: string; q?: string }>;
 export default async function Dashboard({ searchParams }: { searchParams: SP }) {
   const { db } = await requireUser();
   const sp = await searchParams;
-  const types = await listTypes(db);
+  const [types, docs] = await Promise.all([
+    listTypes(db),
+    listDocuments(db, { type: sp.type, status: sp.status, search: sp.q, limit: 100 }),
+  ]);
   const activeType = types.find((t) => t.slug === sp.type);
-  const docs = await listDocuments(db, { type: sp.type, status: sp.status, search: sp.q, limit: 100 });
   const typeBySlug = Object.fromEntries(types.map((t) => [t.slug, t]));
 
   const href = (type?: string) => (type ? `/?type=${type}` : '/');
@@ -29,7 +32,7 @@ export default async function Dashboard({ searchParams }: { searchParams: SP }) 
         ))}
       </div>
 
-      <form className="toolbar">
+      <Form action="/" className="toolbar">
         {sp.type && <input type="hidden" name="type" value={sp.type} />}
         <input name="q" placeholder="Cari nama / nomor..." defaultValue={sp.q ?? ''} />
         {activeType && (
@@ -47,7 +50,7 @@ export default async function Dashboard({ searchParams }: { searchParams: SP }) 
             + {t.name}
           </Link>
         ))}
-      </form>
+      </Form>
 
       {docs.length === 0 && <p className="empty-msg">Belum ada dokumen.</p>}
 
