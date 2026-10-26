@@ -41,10 +41,12 @@ Layout `payment_request` (A4 landscape, bukti transfer di kanan). Jenis bawaan:
 - `req_ongkir` (POLY/REQ-ONG/...) — tanpa pajak, bisa isi `refInvoice` (nomor invoice terkait).
 - `req_ads` (POLY/REQ-ADS/...) — pajak 11% aktif, ada `biayaLain` (biaya admin).
 
-Contoh permintaan ke agent:
-> req ads shopee: Lola Chair 1 pcs 3.500.000, biaya lain 1.000, note transfer ke rekening BCA Pak Sola. (+ kirim foto bukti transfer)
+Keduanya punya `rekening: { bank, number, name }` (rekening tujuan), tampil di bawah kotak NOTE.
 
-> req ongkir Lampung J&T Cargo 1.292.000 untuk invoice POLY/INV/102620/344, transfer ke rekening Pak Antoine.
+Contoh permintaan ke agent:
+> req ads shopee: Lola Chair 1 pcs 3.500.000, biaya lain 1.000, rekening tujuan BCA 1234567890 a.n. Sola. (+ kirim foto bukti transfer)
+
+> req ongkir Lampung J&T Cargo 1.292.000 untuk invoice POLY/INV/102620/344, rekening tujuan Mandiri 1370012345678 a.n. Antoine.
 
 Upload bukti transfer dari file lokal (mis. Hermes menerima foto dari Telegram):
 ```bash

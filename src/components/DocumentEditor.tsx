@@ -48,6 +48,7 @@ export function DocumentEditor({ type, profile, doc, proofUrl }: Props) {
   // --- state payment request ---
   const pr = doc && type.layout === 'payment_request' ? (doc.data as PaymentRequestData) : undefined;
   const [refInvoice, setRefInvoice] = useState(pr?.refInvoice ?? '');
+  const [rekening, setRekening] = useState(pr?.rekening ?? { bank: '', number: '', name: '' });
   const [taxEnabled, setTaxEnabled] = useState(pr ? pr.taxEnabled : type.defaults?.taxEnabled === true);
   const [prDiskon, setPrDiskon] = useState(String(pr?.diskon ?? 0));
   const [biayaLain, setBiayaLain] = useState(String(pr?.biayaLain ?? 0));
@@ -76,7 +77,7 @@ export function DocumentEditor({ type, profile, doc, proofUrl }: Props) {
       };
     }
     if (type.layout === 'payment_request') {
-      return { date, items, refInvoice, taxEnabled, diskon: prDiskon, biayaLain, notes };
+      return { date, items, refInvoice, rekening, taxEnabled, diskon: prDiskon, biayaLain, notes };
     }
     return { date, values, items: type.has_items ? items : undefined, notes };
   }
@@ -95,7 +96,7 @@ export function DocumentEditor({ type, profile, doc, proofUrl }: Props) {
       return null;
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date, dueDate, billTo, sendTo, items, ppnEnabled, diskon, ongkir, notes, values, refInvoice, taxEnabled, prDiskon, biayaLain]);
+  }, [date, dueDate, billTo, sendTo, items, ppnEnabled, diskon, ongkir, notes, values, refInvoice, rekening, taxEnabled, prDiskon, biayaLain]);
 
   async function uploadProof(id: string, file: File) {
     const form = new FormData();
@@ -279,6 +280,21 @@ export function DocumentEditor({ type, profile, doc, proofUrl }: Props) {
               <input value={refInvoice} onChange={(e) => setRefInvoice(e.target.value)} placeholder="POLY/INV/102620/344" />
             </div>
           </div>
+          <h3 style={{ marginTop: 12 }}>Rekening Tujuan</h3>
+          <div className="form-grid">
+            <div className="form-group">
+              <label>Bank</label>
+              <input value={rekening.bank} onChange={(e) => setRekening({ ...rekening, bank: e.target.value })} placeholder="BCA" />
+            </div>
+            <div className="form-group">
+              <label>No. Rekening</label>
+              <input value={rekening.number} onChange={(e) => setRekening({ ...rekening, number: e.target.value })} placeholder="1234567890" inputMode="numeric" />
+            </div>
+            <div className="form-group full-width">
+              <label>Atas Nama</label>
+              <input value={rekening.name} onChange={(e) => setRekening({ ...rekening, name: e.target.value })} placeholder="Sola" />
+            </div>
+          </div>
           <div className="ppn-toggle">
             <input type="checkbox" id="tax" checked={taxEnabled} onChange={(e) => setTaxEnabled(e.target.checked)} />
             <label htmlFor="tax">Pakai pajak ({profile.tax_rate}%)</label>
@@ -358,7 +374,7 @@ export function DocumentEditor({ type, profile, doc, proofUrl }: Props) {
       <hr />
 
       <div className="form-group full-width">
-        <label>{type.layout === 'payment_request' ? 'Note (mis. Transfer ke rekening BCA Pak Sola)' : 'Catatan'}</label>
+        <label>{type.layout === 'payment_request' ? 'Note' : 'Catatan'}</label>
         <textarea rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Catatan tambahan..." />
       </div>
 

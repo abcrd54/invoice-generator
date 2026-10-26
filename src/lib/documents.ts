@@ -88,6 +88,9 @@ export const paymentRequestInput = z.object({
   date: isoDate.optional(),
   items: z.array(itemInput).min(1, 'minimal 1 item'),
   refInvoice: z.string().optional(),
+  rekening: z
+    .object({ bank: z.string().optional(), number: z.coerce.string().optional(), name: z.string().optional() })
+    .optional(),
   taxEnabled: z.boolean().optional(),
   taxRate: z.number().nonnegative().optional(),
   diskon: money.optional(),
@@ -189,6 +192,11 @@ export function normalizePaymentRequest(raw: unknown, profile: BusinessProfile):
     date: input.date ?? todayISO(),
     items,
     refInvoice: input.refInvoice?.trim() ?? '',
+    rekening: {
+      bank: input.rekening?.bank?.trim() ?? '',
+      number: input.rekening?.number?.trim() ?? '',
+      name: input.rekening?.name?.trim() ?? '',
+    },
     taxEnabled,
     taxRate,
     diskon,

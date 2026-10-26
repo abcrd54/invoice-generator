@@ -74,10 +74,18 @@ export interface GenericData {
 }
 
 /** Form Request Payment (req ongkir, req ads, ...). */
+/** Rekening tujuan transfer pada Form Request Payment. */
+export interface BankAccount {
+  bank: string;
+  number: string;
+  name: string;
+}
+
 export interface PaymentRequestData {
   date: string;
   items: LineItem[];
   refInvoice: string;
+  rekening: BankAccount;
   taxEnabled: boolean;
   taxRate: number;
   diskon: number;

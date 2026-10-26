@@ -284,6 +284,7 @@ export function PaymentRequestView({
   proofUrl?: string | null;
 }) {
   const line = '1.5px solid #111';
+  const rek = data.rekening && (data.rekening.bank || data.rekening.number || data.rekening.name) ? data.rekening : null;
   const rows: ReactNode[] = data.items.map((it, i) => (
     <tr key={i} style={{ borderBottom: line }}>
       <td style={{ padding: '7px 4px' }}>{it.description}</td>
@@ -357,6 +358,19 @@ export function PaymentRequestView({
               <div style={{ padding: '14px 10px', fontSize: 17, fontWeight: 300, textAlign: 'center' }}>
                 <Lines text={data.notes || ' '} />
               </div>
+              {rek && (
+                <>
+                  <div style={{ background: '#000', color: '#fff', textAlign: 'center', fontWeight: 700, fontSize: 14, padding: 6 }}>REKENING TUJUAN</div>
+                  <div style={{ padding: '10px', fontSize: 15, fontWeight: 300, textAlign: 'center', lineHeight: 1.5 }}>
+                    <div>
+                      {rek.bank && <strong style={{ fontWeight: 600 }}>{rek.bank}</strong>}
+                      {rek.bank && rek.number && ' · '}
+                      {rek.number && <span style={{ letterSpacing: 0.5 }}>{rek.number}</span>}
+                    </div>
+                    {rek.name && <div>a.n. {rek.name}</div>}
+                  </div>
+                </>
+              )}
             </div>
             <div style={{ flex: 1, fontWeight: 300, display: 'flex', flexDirection: 'column', gap: 2 }}>
               {sumRow('Subtotal', data.subtotal)}

@@ -70,8 +70,10 @@ Untuk type "invoice", data = {
 Untuk layout "payment_request" (req_ongkir, req_ads, ...), data = {
   items: [{description, qty, rate}] (minimal 1),
   refInvoice?: string (nomor invoice terkait, mis. untuk ongkir),
+  rekening?: {bank, number, name} (rekening tujuan transfer, mis. {bank:"BCA", number:"1234567890", name:"Sola"}),
   taxEnabled?: boolean (default dari jenis: req_ads = true / 11%, req_ongkir = false),
-  diskon?: number, biayaLain?: number (biaya admin/lainnya), notes?: string (mis. "Transfer ke rekening BCA Pak Sola"), date?
+  diskon?: number, biayaLain?: number (biaya admin/lainnya), notes?: string (catatan bebas), date?
+  Tanyakan rekening tujuan bila user belum menyebutkannya; cek list_documents / get_document untuk rekening yang pernah dipakai.
 }
 Untuk layout "generic", data = { values: { <key field>: nilai, ... }, items?: [...] (jika has_items), notes?, date? }.`,
     inputSchema: {
@@ -93,6 +95,11 @@ Untuk layout "generic", data = { values: { <key field>: nilai, ... }, items?: [.
             dueDate: { type: 'string' },
             dueInDays: { type: 'number' },
             refInvoice: { type: 'string' },
+            rekening: {
+              type: 'object',
+              description: 'rekening tujuan (payment_request)',
+              properties: { bank: { type: 'string' }, number: { type: 'string' }, name: { type: 'string', description: 'atas nama' } },
+            },
             taxEnabled: { type: 'boolean' },
             biayaLain: { type: 'number' },
             values: { type: 'object', description: 'untuk layout generic' },
