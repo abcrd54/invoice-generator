@@ -28,7 +28,27 @@ mcp_servers:
     headers:
       Authorization: "Bearer <AGENT_API_KEY>"
 ```
-Cek dokumentasi Hermes untuk format pasti versi yang kamu pakai.
+Setelah mengubah config, jalankan `/reload-mcp` di Hermes (atau restart gateway).
+
+### Hermes via WhatsApp
+Hermes punya gateway WhatsApp bawaan (bridge WhatsApp Web / Baileys, tidak perlu URL publik). Di VPS:
+```bash
+hermes whatsapp            # pilih mode "bot" (nomor khusus) lalu scan QR:
+                           # WhatsApp → Setelan → Perangkat tertaut → Tautkan perangkat
+```
+`~/.hermes/.env`:
+```env
+WHATSAPP_ENABLED=true
+WHATSAPP_MODE=bot
+WHATSAPP_ALLOWED_USERS=6281234567890,6289876543210   # nomor yang boleh pakai bot, tanpa "+"
+```
+Jalankan sebagai service supaya tetap hidup: `sudo hermes gateway install --system`.
+
+Catatan:
+- Pakai **nomor khusus** untuk bot (bukan nomor utama) — bridge ini tidak resmi, ada risiko nomor dibatasi WhatsApp.
+- Folder `~/.hermes/platforms/whatsapp/session` = akses penuh ke akun WA; jangan dibagikan.
+- Bukti transfer: kirim foto ke bot. Hermes menyimpan file-nya di VPS lalu meng-upload pakai `curl -F file=@...`
+  ke `/api/v1/documents/<id>/proof` (lihat bagian Request Payment). Jangan kirim gambar sebagai base64 lewat tool.
 
 ### Claude Code / Claude Desktop
 ```bash
