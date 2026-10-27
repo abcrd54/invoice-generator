@@ -14,7 +14,13 @@ export async function GET(req: Request, { params }: { params: Params }) {
   if (!doc) return new Response('Not found', { status: 404 });
 
   const origin = new URL(req.url).origin;
-  const pdf = await renderPdf(`${origin}/p/${token}`);
+  let pdf: Buffer;
+  try {
+    pdf = await renderPdf(`${origin}/p/${token}`);
+  } catch (e) {
+    console.error("pdf", e);
+    return new Response(`Gagal membuat PDF: ${(e as Error).message}`, { status: 500 });
+  }
   const download = new URL(req.url).searchParams.has('download');
   return new Response(new Uint8Array(pdf), {
     headers: {
