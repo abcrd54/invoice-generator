@@ -1,6 +1,6 @@
 # Menghubungkan Agent
 
-Semua akses agent memakai header `Authorization: Bearer <AGENT_API_KEY>`.
+Akses agent memakai header `Authorization: Bearer <AGENT_API_KEY>` (kecuali connector claude.ai, lihat di bawah).
 Server yang menghitung total & membuat nomor dokumen — agent cukup mengirim data mentah.
 
 ## MCP (disarankan)
@@ -77,6 +77,19 @@ Catatan:
 - Folder `~/.hermes/platforms/whatsapp/session` = akses penuh ke akun WA; jangan dibagikan.
 - Bukti transfer: kirim foto ke bot. Hermes menyimpan file-nya di VPS lalu meng-upload pakai `curl -F file=@...`
   ke `/api/v1/documents/<id>/proof` (lihat bagian Request Payment). Jangan kirim gambar sebagai base64 lewat tool.
+
+### claude.ai (web / app HP / Desktop)
+Custom connector claude.ai tidak bisa mengirim header Bearer, jadi pakai kunci di URL:
+1. Isi env `MCP_URL_KEY` di Vercel (string acak min. 32 karakter: `openssl rand -hex 32`), redeploy.
+2. claude.ai → **Settings → Connectors → Add custom connector**:
+   - Name: `Polyline`
+   - URL: `https://<domain-kamu>/api/mcp/<MCP_URL_KEY>`
+   - Biarkan OAuth Client ID/Secret kosong.
+3. Di chat, aktifkan connector Polyline (ikon tools), lalu minta mis. *"buat req ads Lola Chair 3.500.000"*.
+
+Penting: siapa pun yang tahu URL itu bisa membaca & mengubah semua dokumen. Jangan dibagikan.
+Kalau bocor, ganti `MCP_URL_KEY` di Vercel → redeploy → update URL connector.
+Connector yang ditambahkan di claude.ai web otomatis muncul juga di app HP dan Claude Desktop.
 
 ### Claude Code / Claude Desktop
 ```bash
